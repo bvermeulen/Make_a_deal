@@ -30,12 +30,14 @@ def main():
     gui = TkinterCartesian()
     title = '     ... Display Make a Deal ...'
     gui.setup(title, gridx=120, gridy=100, cellx=5, celly=5)
-    gui.setorigin(center=False)
+    gui.controls()
+    gui.setorigin(center=True)
 
     doors = 80
     mad = []
-    while True:
-        # gui.plotgrid()
+    while not gui.exit:
+        gui.aw.delete('all')
+        gui.plotgrid()
         for i in range(1, doors+1):
             row = []
             for j in range(1, doors-1):
@@ -55,9 +57,6 @@ def main():
             mad.append(row)
 
         gui.root.update()
-        gui.aw.delete('all')
-
-    # print(mad)
 
 
 if __name__ == "__main__":

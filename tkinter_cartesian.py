@@ -1,10 +1,16 @@
-from tkinter import Tk, Canvas, Frame
+from tkinter import ttk
+from tkinter import Tk, Canvas, Button
+from tkinter.ttk import Frame, Style, Button
+# style=ttk.Style()
+import pdb
+
 
 class TkinterCartesian():
     '''  Tkinter objects and methods: '''
 
     def setup(self, title='...', gridx=400, gridy=300, cellx=2, celly=2):
         '''  setup of tkinter parameters '''
+        # pdb.set_trace()
         self.gridx=gridx
         self.gridy=gridy
         self.cellx=cellx
@@ -17,48 +23,59 @@ class TkinterCartesian():
         self.root = Tk()
         self.root.title(title)
         self.root.configure(background='darkblue')
+        style = ttk.Style()
+        self.exit=False
 
-        self.mainframe = Frame(self.root,
-                               bd=0,
-                               bg='grey')
+        style.configure("M.TFrame", background='grey')
+        self.mainframe = ttk.Frame(self.root,
+                                   borderwidth=2,
+                                   style="M.TFrame")
         self.mainframe.grid(row=0, column=0, padx=self.padding,
                             pady=self.padding)
 
-        self.displayframe = Frame(self.root,
-                                  width=self.dframe[0], height=self.dframe[1],
-                                  bd=2,
-                                  bg='yellow')
+        style.configure("B.TFrame", background='yellow')
+        self.displayframe = ttk.Frame(self.root,
+                                      width=self.dframe[0],
+                                      height=self.dframe[1],
+                                      borderwidth=2,
+                                      style='B.TFrame')
         self.displayframe.grid(row=1, column=0, padx=self.padding,
-                               pady=self.padding)
+                               pady=self.padding, sticky='w')
 
-        self.controlframe = Frame(self.root,
-                                  width=self.cframe[0], height=self.cframe[1],
-                                  bd=2,
-                                  bg='blue')
+        self.controlframe = ttk.Frame(self.root,
+                                      width=self.cframe[0],
+                                      height=self.cframe[1],
+                                      borderwidth=2,
+                                      style='B.TFrame')
         self.controlframe.grid(row=0, column=1, padx=self.padding,
-                               pady=self.padding)
+                               pady=self.padding, sticky='n')
 
-        self.actionframe = Frame(self.mainframe,
-                                 width=self.aframe[0], height=self.aframe[1],
-                                 bd=0,
-                                 bg='grey',)
+        style.configure("M.TFrame", background='grey')
+        self.actionframe = ttk.Frame(self.mainframe,
+                                     width=self.aframe[0],
+                                     height=self.aframe[1],
+                                     borderwidth=0,
+                                     style='M.TFrame',)
         self.actionframe.grid(row=0, column=1, sticky='ne')
 
-        self.yaxisframe = Frame(self.mainframe,
-                                width=self.axiswidth, height=self.aframe[1],
-                                bd=0,
-                                bg='green')
+        style.configure("A.TFrame", background='green')
+        self.yaxisframe = ttk.Frame(self.mainframe,
+                                    width=self.axiswidth,
+                                    height=self.aframe[1],
+                                    borderwidth=0,
+                                    style='A.TFrame')
         self.yaxisframe.grid(row=0, column=0)
 
-        self.xaxisframe = Frame(self.mainframe,
-                                width=self.aframe[0], height=self.axiswidth,
-                                bd=0,
-                               bg='green')
+        self.xaxisframe = ttk.Frame(self.mainframe,
+                                    width=self.aframe[0],
+                                    height=self.axiswidth,
+                                    borderwidth=0,
+                                    style='A.TFrame')
         self.xaxisframe.grid(row=1, column=1)
 
         self.aw = Canvas(self.actionframe,
                          width=self.aframe[0], height=self.aframe[1],
-                         bg='black')
+                         bg='black', bd=0)
         self.aw.pack()
 
         self.CENTER = False
@@ -75,21 +92,29 @@ class TkinterCartesian():
     def _cartesian(self, point):
         '''  translated the grid origin to normal cartersian '''
         if self.CENTER:
-            point = (int(self.gridx/2 + point[0]),
-                     int(self.gridy/2 - point[1]))
+            point = (int(round(self.gridx/2 + point[0],0)),
+                     int(round(self.gridy/2 - point[1],0)))
         else:
-            point = (point[0], self.gridy - point[1])
+            point = (point[0], int(round(self.gridy - point[1],0)))
         return point
 
-    def plotgrid(self):
-        '''  display grid '''
-        for x in self.grid_x:
-            self.aw.create_line(x, 0, x, self.aframe[1],
-                                fill='grey', width=1)
+    def plotgrid(self, gridlines=False):
+        '''  if display is not centered display grid otherwise display
+             display x and y axis '''
+        if self.CENTER:
+            self.drawline((0, self.gridy/2), (0, -self.gridy/2),
+                          color='grey', width=1)
+            self.drawline((self.gridx/2, 0), (-self.gridx/2, 0),
+                          color='grey', width=1)
 
-        for y in self.grid_y:
-            self.aw.create_line(0, y, self.aframe[0], y,
-                                fill='grey', width=1)
+        if gridlines:
+            for x in self.grid_x:
+                self.aw.create_line(x, 0, x, self.aframe[1],
+                                    fill='grey', width=1)
+
+            for y in self.grid_y:
+                self.aw.create_line(0, y, self.aframe[0], y,
+                                    fill='grey', width=1)
 
     def colorcell(self, point, color='white', center=False,
                   size=(2, 2), shape='oval'):
@@ -116,13 +141,27 @@ class TkinterCartesian():
 
     def drawline(self, point1, point2, color='white', width=2):
         '''  draws a line from point1 to point2 '''
-        point1 = (int(self._cartesian(point1)[0]*self.cellx),
-                  int(self._cartesian(point1)[1]*self.celly))
+        point1 = (self._cartesian(point1)[0]*self.cellx,
+                  self._cartesian(point1)[1]*self.celly)
 
-        point2 = (int(self._cartesian(point2)[0]*self.cellx),
-                  int(self._cartesian(point2)[1]*self.celly))
+        point2 = (self._cartesian(point2)[0]*self.cellx,
+                  self._cartesian(point2)[1]*self.celly)
 
         self.aw.create_line(point1, point2, fill=color, width=width)
 
     # def xaxis(self, tick=10, mark=10, side='bottom'):
     #     '''  draw xaxis
+
+    def controls(self):
+        '''  define control buttons and action '''
+        self.root.protocol('WM_DELETE_WINDOW', self.exit_program)
+        self.btn_exit = Button(self.controlframe, text='exit',
+                                   command=self.exit_program)
+        self.btn_exit.pack()
+
+    def exit_program(self):
+        '''  leave the program '''
+        print(f'we will leave the program now ...')
+        self.root.after(1000)
+        self.exit=True
+        self.root.destroy()

@@ -7,8 +7,9 @@ def main():
     gui = TkinterCartesian()
     title = '     ... Display Make a Deal ...'
     gui.setup(title, gridx=400, gridy=300, cellx=2, celly=2)
-    gui.setgrid(gridlines=False)
+    gui.controls()
     gui.setorigin(center=True)
+    gui.plotgrid(gridlines=False)
 
     gui.colorcell((0, 0), color='white', center=True, size=(30, 30),
                   shape='rectangle')
