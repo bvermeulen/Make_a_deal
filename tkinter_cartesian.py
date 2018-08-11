@@ -149,6 +149,13 @@ class TkinterCartesian():
 
         self.aw.create_line(point1, point2, fill=color, width=width)
 
+    def refresh(self):
+        '''  refresh the screen '''
+        self.aw.delete('all')
+
+    # def getvalue(self):
+    #     '''  get the rgb value of a cell '''
+
     # def xaxis(self, tick=10, mark=10, side='bottom'):
     #     '''  draw xaxis
 
