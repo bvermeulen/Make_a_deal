@@ -10,7 +10,7 @@ def main():
     # gui.setwindow(x=4, y=4, dpi=92, xmin=-10, xmax=10, ymin=-10, ymax=10,
     #               tickx=1, markx=3, ticky=0.5, marky=3)
     gui.setwindow(x=4, y=4, dpi=92, xmin=-10, xmax=10, ymin=-10, ymax=10,
-                  markx=2, marky=2)
+                  tickx=1, markx=2, ticky=1, marky=2)
 
     gui.setuptk(title)
     gui.controls()
@@ -21,7 +21,7 @@ def main():
     while not gui.exit:
         gui.refresh()
         gui.grid()
-        # gui.grid()
+        gui.frame()
         for x in range(-11, 11):
             gui.plotcell((x, x), color='yellow', center=False,
                          size=(20, 20), shape='oval')

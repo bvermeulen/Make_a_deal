@@ -13,12 +13,12 @@ def main():
     gui.controls()
     gui.xaxis()
     gui.yaxis()
-    # gui.plotframe()
 
     dx = 0
     while not gui.exit:
         gui.refresh()
         gui.grid()
+        gui.frame()
         amp = 1 #random.randint(-10, 10)
         point1 = ''
         for x in range(-250, 500, 2):

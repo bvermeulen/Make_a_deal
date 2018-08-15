@@ -29,12 +29,10 @@ class TkinterCartesian():
         '''  translate point in cartersian (x, y) to pixel grid point in
              plotwindow (px, py)'''
         px = (point[0]-self.xmin)/(self.xmax-self.xmin)*self.pixelx
-        py = self.pixely*(1-(point[1]-self.ymin)/(self.ymax-self.ymin))
-        px = px
-        py = py
+        py = self.pixely*(1-(point[1]-self.ymin)/(self.ymax-self.ymin))-1
         return (px, py)
 
-    def plotframe(self):
+    def frame(self):
         '''  plot the frame  '''
         self.drawline((self.xmin, self.ymin), (self.xmax, self.ymin),
                       color='white', width=1)
@@ -105,17 +103,17 @@ class TkinterCartesian():
         '''  draw x-axis '''
         if self.tickx:
             ticks = np.arange(self.xmin, self.xmax, self.tickx)
-            ticksize=4
+            ticksize=5
             for x in ticks:
                 ppoint = list(self._cartesian((x, 0)))
                 ppoint[0] = ppoint[0]+self.axiswidth
-                self.aw.create_line((ppoint[0], self.pixely+1),
-                                    (ppoint[0], self.pixely+1+ticksize),
+                self.xxw.create_line((ppoint[0], 0),
+                                    (ppoint[0], ticksize),
                                     fill='white', width=1)
 
         if self.markx:
             marks = np.arange(self.xmin, self.xmax, self.markx)
-            ticksize=8
+            ticksize=9
             for x in marks:
                 if self.markx < 10:
                     _num = str(f'{float(x):.1f}')
@@ -123,26 +121,26 @@ class TkinterCartesian():
                     _num = str(f'{x}')
                 ppoint = list(self._cartesian((x, 0)))
                 ppoint[0] = ppoint[0]+self.axiswidth
-                self.aw.create_text(ppoint[0], self.pixely+20, text=_num,
+                self.xxw.create_text(ppoint[0], +20, text=_num,
                                     fill='white')
-                self.aw.create_line((ppoint[0], self.pixely+1),
-                                    (ppoint[0], self.pixely+1+ticksize),
+                self.xxw.create_line((ppoint[0], 0),
+                                    (ppoint[0], ticksize),
                                     fill='white', width=1)
 
     def yaxis(self):
         '''  draw y-axis '''
         if self.ticky:
             ticks = np.arange(self.ymin, self.ymax, self.ticky)
-            ticksize=4
+            ticksize=5
             for y in ticks:
                 ppoint = self._cartesian((0, y))
-                self.aw.create_line((self.axiswidth-1, ppoint[1]),
-                                    (self.axiswidth-1-ticksize, ppoint[1]),
-                                    fill='white', width=1)
+                self.yxw.create_line((self.axiswidth, ppoint[1]),
+                                     (self.axiswidth-ticksize, ppoint[1]),
+                                     fill='white', width=1)
 
         if self.marky:
             marks = np.arange(self.ymin, self.ymax, self.marky)
-            ticksize=8
+            ticksize=9
             for y in marks:
                 if self.marky < 10:
                     _num = str(f'{float(y):.1f}')
@@ -150,24 +148,34 @@ class TkinterCartesian():
                     _num = str(f'{y}')
 
                 ppoint = self._cartesian((0, y))
-                self.aw.create_text(self.axiswidth-25, ppoint[1], text=_num,
+                self.yxw.create_text(self.axiswidth-25, ppoint[1], text=_num,
                                     fill='white')
-                self.aw.create_line((self.axiswidth-1, ppoint[1]),
-                                    (self.axiswidth-1-ticksize, ppoint[1]),
+                self.yxw.create_line((self.axiswidth, ppoint[1]),
+                                    (self.axiswidth-ticksize, ppoint[1]),
                                     fill='white', width=1)
 
     def setuptk(self, title='...'):
         self.axiswidth=46
         self.padding = 2
-        self.aframe = (self.pixelx+self.axiswidth, self.pixely+self.axiswidth)
         self.pframe = (self.pixelx, self.pixely)
-        self.dframe = (self.aframe[0]+self.padding, 46)
-        self.cframe = (46, self.aframe[1]+self.padding)
+        self.mframe = (self.pframe[0]+self.axiswidth+20,
+                       self.pframe[1]+self.axiswidth+20)
+        self.dframe = (self.mframe[0], 46)
+        self.cframe = (46, self.mframe[1])
         self.root = Tk()
         self.root.title(title)
         self.root.configure(background='darkblue')
         style = ttk.Style()
         self.exit=False
+
+        style.configure("A.TFrame", background='grey')
+        self.mainframe = ttk.Frame(self.root,
+                                   width=self.mframe[0],
+                                   height=self.mframe[1],
+                                   borderwidth=2,
+                                   style='A.TFrame')
+        self.mainframe.grid(row=0, column=0, padx=self.padding,
+                               pady=self.padding, sticky='nw')
 
         style.configure("B.TFrame", background='yellow')
         self.displayframe = ttk.Frame(self.root,
@@ -186,17 +194,24 @@ class TkinterCartesian():
         self.controlframe.grid(row=0, column=1, padx=self.padding,
                                pady=self.padding, sticky='n')
 
-        self.aw = Canvas(self.root,
-                         width=self.aframe[0], height=self.aframe[1],
-                         bg='black', bd=0)
-        self.aw.grid(row=0, column=0, padx=self.padding,
-                               pady=self.padding, sticky='nw')
+        self.xxw = Canvas(self.mainframe,
+                          width=self.pframe[0]+self.axiswidth,
+                          height=self.axiswidth,
+                          bg='black', bd=0,
+                          highlightthickness=0,)
+        self.xxw.place(x=10, y=10+self.pixely)
 
-        self.pw = Canvas(self.root,
-                         width=self.pframe[0], height=self.pframe[1],
-                         bg='black', bd=0)
-        self.pw.grid(row=0, column=0, padx=self.padding,
-                               pady=self.padding, sticky='ne')
+        self.yxw = Canvas(self.mainframe,
+                         width=self.axiswidth, height=self.pframe[1]+10,
+                         bg='black', bd=0,
+                         highlightthickness=0,)
+        self.yxw.place(x=10, y=10)
+
+        self.pw = Canvas(self.mainframe,
+                         width=self.pframe[0]+1, height=self.pframe[1],
+                         bg='black', bd=0,
+                         highlightthickness=0)
+        self.pw.place(x=10+self.axiswidth, y=10)
 
     def controls(self):
         '''  define control buttons and action '''
