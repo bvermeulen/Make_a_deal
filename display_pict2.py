@@ -1,6 +1,9 @@
-from tkinter_cartesian import TkinterCartesian
 import numpy as np
-from scipy.misc import imread
+import random
+from scipy.misc import imread, imsave, imresize
+from tkinter_cartesian import TkinterCartesian
+from math import sin
+
 
 def hex_color(color):
     ''' converts color (R, G, B) to a Hex string for tkinter
@@ -17,39 +20,34 @@ def hex_color(color):
 
     return hcolor
 
-
 def main():
-
     gui = TkinterCartesian()
-    title = '     ... Display test display 3 (picture)...'
-    # gui.setwindow(x=4, y=4, dpi=92, xmin=-10, xmax=10, ymin=-10, ymax=10,
-    #               tickx=1, markx=3, ticky=0.5, marky=3)
-    gui.setwindow(x=5, y=5, dpi=92, xmin=0, xmax=180, ymin=0, ymax=200,
-                  tickx=10, markx=50, ticky=10, marky=50)
-
-    gui.setuptk(title)
+    title='     ... display a picture ...'
+    gridx, gridy=300, 320
+    cellx, celly=2, 2
+    gui.setup(title, gridx=gridx, gridy=gridy, cellx=cellx, celly=celly)
     gui.controls()
+    gui.setorigin(center=False)
+    gui.xaxis()
+    gui.yaxis()
 
-    size = np.array([1, 1])
     img = imread('picture.JPG')
     HEIGHT=img.shape[0]
     WIDTH=img.shape[1]
-    print(f'width: {WIDTH}, height: {HEIGHT}')
+    img = imresize(img, (HEIGHT,WIDTH))
+
+    size=np.array([cellx,celly])
     while not gui.exit:
         gui.refresh()
-        gui.grid()
-        gui.frame()
-        gui.xaxis()
-        gui.yaxis()
+        gui.plotgrid(gridlines=False)
 
         for i in range(HEIGHT):
             for j in range(WIDTH):
                 rgb= (img[i, j, 0], img[i, j, 1], img[i, j, 2])
                 color = hex_color(rgb)
-                gui.plotcell((j, HEIGHT-i), color=color, center=False,
-                              size=size*3, shape='rectangle')
+                gui.colorcell((j, gridy/2-i), color=color, center=False,
+                              size=size*1, shape='rectangle')
         gui.root.update()
-
 
 if __name__ == "__main__":
     main()

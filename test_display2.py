@@ -14,14 +14,15 @@ def main():
 
     gui.setuptk(title)
     gui.controls()
-    gui.xaxis()
-    gui.yaxis()
 
     dx = 0
     while not gui.exit:
         gui.refresh()
         gui.grid()
         gui.frame()
+        gui.xaxis()
+        gui.yaxis()
+
         for x in range(-11, 11):
             gui.plotcell((x, x), color='yellow', center=False,
                          size=(20, 20), shape='oval')

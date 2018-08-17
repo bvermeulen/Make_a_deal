@@ -1,6 +1,6 @@
 from tkinter import ttk
-from tkinter import Tk, Canvas, Button
-from tkinter.ttk import Frame, Style, Button
+from tkinter import Tk, Canvas
+from tkinter.ttk import Frame, Style, Button, Scrollbar
 import numpy as np
 import pdb
 
@@ -24,12 +24,15 @@ class TkinterCartesian():
         self.markx = markx
         self.ticky = ticky
         self.marky = marky
+        self.zoom = 1
 
     def _cartesian(self, point):
         '''  translate point in cartersian (x, y) to pixel grid point in
              plotwindow (px, py)'''
         px = (point[0]-self.xmin)/(self.xmax-self.xmin)*self.pixelx
         py = self.pixely*(1-(point[1]-self.ymin)/(self.ymax-self.ymin))-1
+        px = px*self.zoom
+        py = py*self.zoom
         return (px, py)
 
     def frame(self):
@@ -98,6 +101,8 @@ class TkinterCartesian():
     def refresh(self):
         '''  refresh the screen '''
         self.pw.delete('all')
+        self.xxw.delete('all')
+        self.yxw.delete('all')
 
     def xaxis(self):
         '''  draw x-axis '''
@@ -179,7 +184,7 @@ class TkinterCartesian():
 
         style.configure("B.TFrame", background='yellow')
         self.displayframe = ttk.Frame(self.root,
-                                      width=self.dframe[0],
+                                      width=self.dframe[0]+16,
                                       height=self.dframe[1],
                                       borderwidth=2,
                                       style='B.TFrame')
@@ -194,24 +199,65 @@ class TkinterCartesian():
         self.controlframe.grid(row=0, column=1, padx=self.padding,
                                pady=self.padding, sticky='n')
 
-        self.xxw = Canvas(self.mainframe,
+        self.scrolly=Scrollbar(self.mainframe, orient='vertical')
+        self.scrollx=Scrollbar(self.mainframe, orient='horizontal')
+        self.plotframe=Frame(self.mainframe, width=self.mframe[0],
+                             height=self.mframe[1])
+        self.scrollx.pack(side='bottom', fill='x', anchor='sw')
+        self.plotframe.pack(side='left', anchor='nw', fill='both')
+        self.scrolly.pack(side='right', fill='y', anchor='ne')
+
+        self.scrolly.config(command=self.onscrolly)
+        self.scrollx.config(command=self.onscrollx)
+
+        self.xxw = Canvas(self.plotframe,
                           width=self.pframe[0]+self.axiswidth,
                           height=self.axiswidth,
+                          scrollregion=(0,0,2000,2000),
+                          yscrollcommand=self.scrolly.set,
+                          xscrollcommand=self.scrollx.set,
                           bg='black', bd=0,
-                          highlightthickness=0,)
-        self.xxw.place(x=10, y=10+self.pixely)
+                          highlightthickness=0)
 
-        self.yxw = Canvas(self.mainframe,
+        self.yxw = Canvas(self.plotframe,
                          width=self.axiswidth, height=self.pframe[1]+10,
                          bg='black', bd=0,
-                         highlightthickness=0,)
-        self.yxw.place(x=10, y=10)
+                         highlightthickness=0,
+                         scrollregion=(0,0,2000,2000),
+                         yscrollcommand=self.scrolly.set,
+                         xscrollcommand=self.scrollx.set)
 
-        self.pw = Canvas(self.mainframe,
+        self.pw = Canvas(self.plotframe,
                          width=self.pframe[0]+1, height=self.pframe[1],
                          bg='black', bd=0,
-                         highlightthickness=0)
-        self.pw.place(x=10+self.axiswidth, y=10)
+                         highlightthickness=0,
+                         scrollregion=(0,0,2000,2000),
+                         yscrollcommand=self.scrolly.set,
+                         xscrollcommand=self.scrollx.set)
+
+        self.position()
+
+    def onscrolly(self, *args):
+        self.yxw.yview(*args)
+        self.pw.yview(*args)
+
+    def onscrollx(self, *args):
+        self.xxw.xview(*args)
+        self.pw.xview(*args)
+
+    def zoomin(self):
+        self.zoom = self.zoom*1.1
+
+    def zoomout(self):
+        self.zoom = self.zoom/1.1
+
+    def position(self, x=0, y=0):
+        x1, y1 = 10+x, 10+self.pixely+y
+        self.xxw.place(x=x1, y=y1)
+        x1, y1 = 10+x, 10+y
+        self.yxw.place(x=x1, y=y1)
+        x1, y1 = 10+self.axiswidth+x, 10+y
+        self.pw.place(x=x1, y=y1)
 
     def controls(self):
         '''  define control buttons and action '''
@@ -219,6 +265,12 @@ class TkinterCartesian():
         self.btn_exit = Button(self.controlframe, text='exit',
                                    command=self.exit_program)
         self.btn_exit.pack()
+        self.btn_zoomin = Button(self.controlframe, text='zoom in',
+                                 command=self.zoomin)
+        self.btn_zoomin.pack()
+        self.btn_zoomout = Button(self.controlframe, text='zoom out',
+                                  command=self.zoomout)
+        self.btn_zoomout.pack()
 
     def exit_program(self):
         '''  leave the program '''
