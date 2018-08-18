@@ -206,8 +206,10 @@ class TkinterCartesian():
         self.plotframe.pack(side='left', anchor='nw', fill='both')
         self.scrolly.pack(side='right', fill='y', anchor='ne')
 
-        self.scrolly.config(command=self.onscrolly)
-        self.scrollx.config(command=self.onscrollx)
+        self.scrolly.config(command=lambda *args, axis='y': self.onscroll(axis, *args))
+        self.scrollx.config(command=lambda *args, axis='x': self.onscroll(axis, *args))
+
+        # self.scrollx.config(command=self.onscrollx)
 
         self.xxw = Canvas(self.plotframe,
                           width=self.pframe[0]+self.axiswidth,
@@ -239,44 +241,6 @@ class TkinterCartesian():
         self.pw.yview_moveto(_move)
         self.pw.xview_moveto(_move)
 
-    def onscrolly(self, *args):
-        self.yxw.yview(*args)
-        self.pw.yview(*args)
-
-    def onscrollx(self, *args):
-        self.xxw.xview(*args)
-        self.pw.xview(*args)
-
-    def zoomin(self):
-        self.zoom = self.zoom*1.1
-
-    def zoomout(self):
-        self.zoom = self.zoom/1.1
-
-    def enlarge(self):
-        self.pframe = self.pframe*1.1
-        self.mframe = self.mframe*1.1
-        self.xxw.config(width=self.pframe[0]+self.axiswidth,
-                        height=self.axiswidth)
-        self.yxw.config(width=self.axiswidth,
-                        height=self.pframe[1]+10)
-        self.pw.config(width=self.pframe[0],
-                        height=self.pframe[1])
-        self.position()
-        self.plotframe.config(width=self.mframe[0], height=self.mframe[1])
-
-    def reduce(self):
-        self.pframe = self.pframe/1.1
-        self.mframe = self.mframe/1.1
-        self.xxw.config(width=self.pframe[0]+self.axiswidth,
-                        height=self.axiswidth)
-        self.yxw.config(width=self.axiswidth,
-                        height=self.pframe[1]+10)
-        self.pw.config(width=self.pframe[0],
-                        height=self.pframe[1])
-        self.position()
-        self.plotframe.config(width=self.mframe[0], height=self.mframe[1])
-
     def position(self, x=0, y=0):
         x1, y1 = 10+x, 10+self.pframe[1]+y
         self.xxw.place(x=x1, y=y1)
@@ -285,6 +249,40 @@ class TkinterCartesian():
         x1, y1 = 10+self.axiswidth+x, 10+y
         self.pw.place(x=x1, y=y1)
 
+    def onscroll(self, axis, *args):
+        if axis == 'y':
+            self.yxw.yview(*args)
+            self.pw.yview(*args)
+        elif axis == 'x':
+            self.xxw.xview(*args)
+            self.pw.xview(*args)
+        else:
+            assert False, f"axis {axis}: must be either 'x' or 'y'"
+
+    def onzoom(self, zoom):
+        if zoom:
+            self.zoom = self.zoom*1.1
+
+        else:
+            self.zoom = self.zoom/1.1
+
+    def onresize(self, enlarge):
+        if enlarge:
+            self.pframe = self.pframe*1.1
+            self.mframe = self.mframe*1.1
+        else:
+            self.pframe = self.pframe/1.1
+            self.mframe = self.mframe/1.1
+
+        self.xxw.config(width=self.pframe[0]+self.axiswidth,
+                        height=self.axiswidth)
+        self.yxw.config(width=self.axiswidth,
+                        height=self.pframe[1]+10)
+        self.pw.config(width=self.pframe[0],
+                        height=self.pframe[1])
+        self.position()
+        self.plotframe.config(width=self.mframe[0], height=self.mframe[1])
+
     def controls(self):
         '''  define control buttons and action '''
         self.root.protocol('WM_DELETE_WINDOW', self.exit_program)
@@ -292,16 +290,16 @@ class TkinterCartesian():
                                    command=self.exit_program)
         self.btn_exit.pack()
         self.btn_zoomin = Button(self.controlframe, text='zoom in',
-                                 command=self.zoomin)
+                                 command=lambda: self.onzoom(zoom=True))
         self.btn_zoomin.pack()
         self.btn_zoomout = Button(self.controlframe, text='zoom out',
-                                  command=self.zoomout)
+                                  command=lambda: self.onzoom(zoom=False))
         self.btn_zoomout.pack()
         self.btn_enlarge = Button(self.controlframe, text='enlarge',
-                                 command=self.enlarge)
+                                 command=lambda: self.onresize(enlarge=True))
         self.btn_enlarge.pack()
         self.btn_reduce = Button(self.controlframe, text='reduce',
-                                  command=self.reduce)
+                                  command=lambda: self.onresize(enlarge=False))
         self.btn_reduce.pack()
 
     def exit_program(self):
