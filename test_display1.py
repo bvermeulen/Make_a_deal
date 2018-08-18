@@ -5,10 +5,10 @@ import random
 
 def main():
 
-    xmin, xmax, ymin, ymax=-210, 500, -1.5, 1.5
+    xmin, xmax, ymin, ymax=-500, 1000, -1.5, 1.6
     gui = TkinterCartesian()
     title = '     ... Display test display 1 ...'
-    gui.setwindow(x=5, y=3, dpi=92, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
+    gui.setwindow(x=6, y=4, dpi=92, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                   tickx=20, markx=100, ticky=0.2, marky=0.5)
     gui.setuptk(title)
     gui.controls()
